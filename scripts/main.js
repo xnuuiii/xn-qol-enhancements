@@ -129,8 +129,8 @@ function keepJunctions(plans, blk){
     for(let k = 0; k < arr.length; k++){
         const p = arr[k];
         if(!(isBr(p.block)) || !onJ(p)) continue;
-        const up = k + 1 < arr.length && pos(arr[k + 1]) - pos(p) > 1;   // p starts a span going up
-        const down = k > 0 && pos(p) - pos(arr[k - 1]) > 1;               // p ends a span coming from below
+        const up = k + 1 < arr.length && pos(arr[k + 1]) - pos(p) > 1;
+        const down = k > 0 && pos(p) - pos(arr[k - 1]) > 1;
         if(up == down) continue;
         const o = up ? k - 1 : k + 1;
         if(o < 0 || o >= arr.length) continue;
@@ -165,6 +165,52 @@ function keepJunctions(plans, blk){
     return kept + moved;
 }
 
+function relink(plans, phase){
+    const n = plans.size;
+    if(n < 2) return;
+    const first = plans.get(0), last = plans.get(n - 1);
+    const horiz = first.y == last.y;
+    if(!horiz && first.x != last.x) return;
+    const pos = p => horiz ? p.x : p.y;
+    const asc = pos(first) <= pos(last);
+    const range = Number(phase.range);
+    const arr = [];
+    for(let i = 0; i < n; i++) arr.push(plans.get(i));
+    arr.sort((a, b) => pos(a) - pos(b));
+    if(!asc) arr.reverse();
+    for(let i = 0; i < arr.length; i++){
+        const p = arr[i];
+        if(p.block !== phase) continue;
+        const q = i + 1 < arr.length ? arr[i + 1] : null;
+        if(q != null && q.block === phase && Math.abs(pos(q) - pos(p)) <= range){
+            const d = pos(q) - pos(p);
+            p.config = new Point2(horiz ? d : 0, horiz ? 0 : d);
+        }else{
+            p.config = null;
+        }
+    }
+}
+
+function dumpPhase(plans, phase){
+    const n = plans.size;
+    if(n < 2) return;
+    const first = plans.get(0), last = plans.get(n - 1);
+    const horiz = first.y == last.y;
+    const pos = p => horiz ? p.x : p.y;
+    const arr = [];
+    for(let i = 0; i < n; i++) arr.push(plans.get(i));
+    arr.sort((a, b) => pos(a) - pos(b));
+    if(pos(first) > pos(last)) arr.reverse();
+    let s = "drag-order phase bridges:";
+    for(let i = 0; i < arr.length; i++){
+        const p = arr[i];
+        if(p.block !== phase) continue;
+        const c = p.config;
+        s += " [" + pos(p) + (c == null ? " no-link" : " ->" + c.x + "," + c.y) + "]";
+    }
+    dbg(s);
+}
+
 function upgrade(plans, phase){
     const team = Vars.player.team();
     const n = plans.size;
@@ -187,14 +233,13 @@ function upgrade(plans, phase){
         if(!isBad(arr[i], team)){ out.push(arr[i]); i++; continue; }
         let j = i;
         while(j < arr.length && isBad(arr[j], team)) j++;
-        // arr[i..j-1] is red; endpoints are the plans just outside it
         let a = out.length > 0 ? out[out.length - 1] : null;
         while(a != null && a.block instanceof LiquidJunction){ out.pop(); a = out.length > 0 ? out[out.length - 1] : null; }
         let jb = j;
         while(jb < arr.length && arr[jb].block instanceof LiquidJunction) jb++;
         const b = jb < arr.length ? arr[jb] : null;
         if(a == null || b == null || Math.abs(pos(b) - pos(a)) > range){
-            for(let k = i; k < j; k++) out.push(arr[k]);   // cannot span, keep red
+            for(let k = i; k < j; k++) out.push(arr[k]);
             i = j; continue;
         }
         const src = asc ? a : b, dst = asc ? b : a;
@@ -209,10 +254,11 @@ function upgrade(plans, phase){
     if(changed > 0){
         const res = new Seq();
         const comp = compress(out, phase, pos, asc, range); for(let k = 0; k < comp.length; k++) res.add(comp[k]);
-        // keep original drag order
         if(!asc) res.reverse();
         plans.set(res);
     }
+    relink(plans, phase);
+    dumpPhase(plans, phase);
     return changed;
 }
 
