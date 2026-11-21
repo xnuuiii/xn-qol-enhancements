@@ -68,6 +68,27 @@ function convertAdj(arr, p, phase){
     if(n > 0) log("chain converted " + n + " extra bridge plans");
 }
 
+// phase bridges only: link each one to the farthest phase bridge within range, drop the ones (and plain plans) skipped
+function mergeFar(out, phase, pos, range){
+    const idx = [];
+    for(let i = 0; i < out.length; i++) if(out[i].block === phase) idx.push(i);
+    if(idx.length < 3) return out;
+    const drop = {};
+    let dropped = 0, k = 0;
+    while(k < idx.length - 1){
+        let q = k + 1;
+        while(q + 1 < idx.length && pos(out[idx[q + 1]]) - pos(out[idx[k]]) <= range) q++;
+        if(q > k + 1){
+            for(let t = idx[k] + 1; t < idx[q]; t++){ drop[t] = true; dropped++; }
+        }
+        k = q;
+    }
+    dbg("mergeFar phase=" + idx.length + " dropped=" + dropped);
+    const res = [];
+    for(let i = 0; i < out.length; i++) if(!drop[i]) res.push(out[i]);
+    return res;
+}
+
 function compress(out, phase, pos, asc, range){
     const res = [];
     let removed = 0;
@@ -253,7 +274,7 @@ function upgrade(plans, phase){
     }
     if(changed > 0){
         const res = new Seq();
-        const comp = compress(out, phase, pos, asc, range); for(let k = 0; k < comp.length; k++) res.add(comp[k]);
+        const comp = mergeFar(out, phase, pos, range); for(let k = 0; k < comp.length; k++) res.add(comp[k]);
         if(!asc) res.reverse();
         plans.set(res);
     }
