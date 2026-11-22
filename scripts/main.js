@@ -1,4 +1,5 @@
 //This is just a "port" that was quickly made. I've tested most of the features and i don't think there are any bugs?
+function isJ(b){ return b instanceof LiquidJunction || b instanceof Junction; }
 const DEBUG = false;
 function dbg(s){ if(DEBUG) Log.info("[xn-qol] " + s); }
 dbg("loaded");
@@ -121,7 +122,7 @@ function compress(out, phase, pos, asc, range){
 }
 
 function keepJunctions(plans, blk){
-    if(!(blk instanceof Conduit)) return 0;
+    if(!(blk instanceof Conduit || blk instanceof Conveyor || blk instanceof Duct)) return 0;
     const isDir = dirBr(blk);
     const n = plans.size;
     if(n < 3) return 0;
@@ -130,7 +131,7 @@ function keepJunctions(plans, blk){
     if(!horiz && first.x != last.x) return 0;
     const pos = p => horiz ? p.x : p.y;
     const asc = pos(first) <= pos(last);
-    const onJ = p => { const t = p.tile(); return t != null && t.block() instanceof LiquidJunction; };
+    const onJ = p => { const t = p.tile(); return t != null && isJ(t.block()); };
 
     const arr = [];
     for(let i = 0; i < n; i++) arr.push(plans.get(i));
@@ -141,7 +142,7 @@ function keepJunctions(plans, blk){
 
     for(let k = 1; k < arr.length - 1; k++){
         const p = arr[k];
-        if(!(p.block instanceof Conduit) || !onJ(p)) continue;
+        if(!(p.block instanceof Conduit || p.block instanceof Conveyor || p.block instanceof Duct) || !onJ(p)) continue;
         if(pos(p) - pos(arr[k - 1]) != 1 || pos(arr[k + 1]) - pos(p) != 1) continue;
         p.block = p.tile().block();
         kept++;
@@ -156,7 +157,7 @@ function keepJunctions(plans, blk){
         const o = up ? k - 1 : k + 1;
         if(o < 0 || o >= arr.length) continue;
         const q = arr[o], partner = up ? arr[k + 1] : arr[k - 1];
-        if(Math.abs(pos(q) - pos(p)) != 1 || !(q.block instanceof Conduit) || onJ(q)) continue;
+        if(Math.abs(pos(q) - pos(p)) != 1 || !(q.block instanceof Conduit || q.block instanceof Conveyor || q.block instanceof Duct) || onJ(q)) continue;
 
         let b = p.block;
         const span = Math.abs(pos(partner) - pos(q));
@@ -255,9 +256,9 @@ function upgrade(plans, phase){
         let j = i;
         while(j < arr.length && isBad(arr[j], team)) j++;
         let a = out.length > 0 ? out[out.length - 1] : null;
-        while(a != null && a.block instanceof LiquidJunction){ out.pop(); a = out.length > 0 ? out[out.length - 1] : null; }
+        while(a != null && isJ(a.block)){ out.pop(); a = out.length > 0 ? out[out.length - 1] : null; }
         let jb = j;
-        while(jb < arr.length && arr[jb].block instanceof LiquidJunction) jb++;
+        while(jb < arr.length && isJ(arr[jb].block)) jb++;
         const b = jb < arr.length ? arr[jb] : null;
         if(a == null || b == null || Math.abs(pos(b) - pos(a)) > range){
             for(let k = i; k < j; k++) out.push(arr[k]);
