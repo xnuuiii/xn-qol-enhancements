@@ -69,7 +69,6 @@ function convertAdj(arr, p, phase){
     if(n > 0) log("chain converted " + n + " extra bridge plans");
 }
 
-// phase bridges only: link each one to the farthest phase bridge within range, drop the ones (and plain plans) skipped
 function mergeFar(out, phase, pos, range){
     const idx = [];
     for(let i = 0; i < out.length; i++) if(out[i].block === phase) idx.push(i);
