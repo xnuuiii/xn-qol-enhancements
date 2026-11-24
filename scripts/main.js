@@ -137,7 +137,7 @@ function keepJunctions(plans, blk){
     arr.sort((a, b) => pos(a) - pos(b));
 
     let kept = 0, moved = 0;
-    const drop = [];
+    const drop = [], repl = [];
 
     for(let k = 1; k < arr.length - 1; k++){
         const p = arr[k];
@@ -155,7 +155,7 @@ function keepJunctions(plans, blk){
         if(up == down) continue;
         const o = up ? k - 1 : k + 1;
         if(o < 0 || o >= arr.length) continue;
-        const q = arr[o], partner = up ? arr[k + 1] : arr[k - 1];
+        const q = arr[o]; let partner = up ? arr[k + 1] : arr[k - 1]; const di = drop.indexOf(partner); if(di >= 0) partner = repl[di];
         if(Math.abs(pos(q) - pos(p)) != 1 || !(q.block instanceof Conduit || q.block instanceof Conveyor || q.block instanceof Duct) || onJ(q)) continue;
 
         let b = p.block;
@@ -172,7 +172,7 @@ function keepJunctions(plans, blk){
         const src = asc ? lo : hi, dst = asc ? hi : lo;
         const d = pos(dst) - pos(src);
         if(!(b instanceof DirectionBridge)) src.config = new Point2(horiz ? d : 0, horiz ? 0 : d);
-        drop.push(p);
+        drop.push(p); repl.push(q);
         moved++;
     }
 
