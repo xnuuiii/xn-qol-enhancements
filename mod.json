@@ -2,8 +2,7 @@
   "name": "xn-qol-enhancements",
   "displayName": "Smol QoL Enhancements",
   "author": "Xnuui",
-  "description": "[yellow]Features in this mod were listed as [scarlet]PRs[] a while ago. But [scarlet]Anuke[], to this day, has not decided to merge them in, so i made a mod about it.[]\n\n[scarlet]Features included:[]\n1. [yellow]Phase Bridge Auto-link [scarlet](DRAGGING)[white]; Basically how you can do it with normal bridges, but with phase bridges supported too.\n\n2. [yellow]Junction Fix[];\nLets players move a conduit line over a junction, without modifying it back into a normal conduit.\n\n3. [yellow]Total Schematic fix[];\nDisplays the total schematic size when opening a schematic.\n\n[yellow]4. Heat Decimal Display[];\nDisplays heat as a decimal, if there is one.",
-  "version": "1.4",
+  "description": "[#FFB7C5]Features in this mod were listed as [#EF4444]PRs[][#FFB7C5] a while ago. But [#EF4444]Anuke[][#FFB7C5], to this day, has not decided to merge them in, so i made a mod about it.[]\n\n[#EF4444]Features included:[]\n\n1. [#FFF000]Phase Bridge Auto-link [#EF4444](DRAGGING)[]\n[#88C6ED]Works like normal bridges when you drag, but with phase bridges supported too.[]\n\n2. [#FFF000]Junction Fix[]\n[#88C6ED]Lets players move a conduit line over a junction without turning it back into a normal conduit.[]\n\n3. [#82C341]Total Schematic Fix[]\n[#88C6ED]Displays the total schematic size when opening a schematic.[]\n\n4. [#FAA31B]Heat Decimal Display[]\n[#88C6ED]Displays heat as a decimal only when there is one (1.5 stays 1.5, 3 stays 3).[]",  "version": "1.4",
   "minGameVersion": 160,
   "repo": "xnuuiii/xn-qol-enhancements",
   "hidden": true
