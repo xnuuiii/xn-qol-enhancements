@@ -314,3 +314,27 @@ Events.run(Trigger.preDraw, () => {
     }
 });
 
+Events.on(ClientLoadEvent, () => {
+    const Strs = Packages.arc.util.Strings;
+    const M = Packages.mindustry;
+    const Bar = M.ui.Bar, Pal = M.graphics.Pal;
+    const fx = n => Strs.autoFixed(n, 1);
+    const mk = (txt, frac) => new Bar(prov(() => txt()), prov(() => Pal.lightOrange), floatp(() => frac()));
+    const swap = (cls, ok, make) => Vars.content.blocks().each(cons(b => {
+        if(!(b instanceof cls) || !ok(b)) return;
+        b.removeBar("heat");
+        b.addBar("heat", func(e => make(b, e)));
+    }));
+
+    swap(M.world.blocks.production.HeatCrafter, b => true, (b, e) => mk(
+        () => Core.bundle.format("bar.heatpercent", fx(e.heat), "" + Math.floor(e.efficiencyScale() * 100 + 0.01)),
+        () => e.heat / b.heatRequirement));
+
+    swap(M.world.blocks.defense.turrets.Turret, b => b.heatRequirement > 0, (b, e) => mk(
+        () => Core.bundle.format("bar.heatpercent", fx(e.heatReq), "" + Math.floor(Math.min(e.heatReq / b.heatRequirement, b.maxHeatEfficiency) * 100)),
+        () => e.heatReq / b.heatRequirement));
+
+    swap(M.world.blocks.power.VariableReactor, b => true, (b, e) => mk(
+        () => Core.bundle.format("bar.heatpercent", fx(e.heat), "" + Math.floor(Mathf.clamp(e.heat / b.maxHeat) * 100)),
+        () => e.heat / b.maxHeat));
+});
