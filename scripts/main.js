@@ -338,3 +338,31 @@ Events.on(ClientLoadEvent, () => {
         () => Core.bundle.format("bar.heatpercent", fx(e.heat), "" + Math.floor(Mathf.clamp(e.heat / b.maxHeat) * 100)),
         () => e.heat / b.maxHeat));
 });
+
+Events.on(ClientLoadEvent, () => {
+    const M = Packages.mindustry;
+    const Bar = M.ui.Bar, Pal = M.graphics.Pal;
+    const fx = n => Packages.arc.util.Strings.autoFixed(n, 1);
+    Vars.content.blocks().each(cons(b => {
+        if(!(b instanceof M.world.blocks.heat.HeatConductor)) return;
+        b.removeBar("heat");
+        b.addBar("heat", func(e => new Bar(
+            prov(() => Core.bundle.format("bar.heatamount", fx(e.heat))),
+            prov(() => Pal.lightOrange),
+            floatp(() => e.heat / b.visualMaxHeat))));
+    }));
+
+    const Label = Packages.arc.scene.ui.Label, Group = Packages.arc.scene.Group;
+    const re = /^(\d+)x(\d+), (\d+) blocks?$/;
+    const walk = g => g.getChildren().each(cons(c => {
+        if(c instanceof Label){
+            const m = re.exec("" + c.getText());
+            if(m) c.setText(m[1] + "x" + m[2] + " (" + (m[1] * m[2]) + "), " + m[3] + " blocks");
+        }else if(c instanceof Group) walk(c);
+    }));
+    let t = 0;
+    Events.run(Trigger.update, () => {
+        if(++t % 4 != 0 || !Core.scene.hasDialog()) return;
+        walk(Core.scene.root);
+    });
+});
